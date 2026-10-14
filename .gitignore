@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+env/
+.DS_Store
+*.log
+account_instagram.txt
+account_facebook.txt
+acc_fb_thanhcong.txt
+acc_fb_die_checkpoint.txt
+proxy.txt
+avatar/*.jpg
+avatar/*.png
+avatar/*.jpeg
+avatar/*.jfif
