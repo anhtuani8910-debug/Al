@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0e17">
+<title>NP09V3 - Multi Tool Dashboard</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #0a0e17; color: #e2e8f0; min-height: 100vh; padding-bottom: 40px; overflow-x: hidden; }
+.topbar { display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+  background: #0f1521; border-bottom: 1px solid #1a2332; position: sticky; top: 0; z-index: 100; }
+.topbar .back { font-size: 22px; cursor: pointer; }
+.topbar .title { flex: 1; font-size: 16px; font-weight: 700; color: #fff; }
+.topbar .menu { font-size: 20px; cursor: pointer; }
+.app-header { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; flex-wrap: wrap; }
+.app-name { font-size: 18px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
+.user-chip { display: inline-flex; align-items: center; gap: 5px; background: #1a2332;
+  border: 1px solid #2d3a4f; padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; color: #8492a6; font-weight: 600; }
+.trial-chip { background: linear-gradient(90deg, #06b6d4, #0891b2);
+  color: #fff; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.io-status { padding: 0 16px 8px; font-size: 11px; color: #5c6b84; }
+.menu-row { display: flex; gap: 8px; padding: 6px 12px 12px; overflow-x: auto; scrollbar-width: none; }
+.menu-row::-webkit-scrollbar { display: none; }
+.menu-btn { flex-shrink: 0; display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; background: transparent; border: 1.5px solid #f5a623;
+  color: #f5a623; border-radius: 22px; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: 0.2s; white-space: nowrap; }
+.menu-btn.active, .menu-btn:hover { background: #f5a623; color: #0a0e17; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 0 12px 12px; }
+.stat-card { background: #131a26; border: 1px solid #1f2a3d; border-radius: 12px;
+  padding: 10px 8px; text-align: center; }
+.stat-card .label { font-size: 9.5px; color: #5c6b84; font-weight: 700;
+  text-transform: uppercase; display: flex; align-items: center; justify-content: center;
+  gap: 3px; letter-spacing: 0.3px; margin-bottom: 6px; }
+.stat-card .value { font-size: 20px; font-weight: 800; line-height: 1; }
+.stat-card .value.green { color: #10b981; }
+.stat-card .value.red { color: #ef4444; }
+.stat-card .value.gold { color: #f5a623; }
+.main-panel { margin: 0 12px 14px; background: #0f1521; border: 1px solid #1f2a3d;
+  border-radius: 16px; padding: 14px; }
+.btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.big-btn { display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 12px 8px; border: none; border-radius: 22px; font-size: 11.5px;
+  font-weight: 700; cursor: pointer; transition: 0.2s; text-align: center; line-height: 1.2; }
+.big-btn:active { transform: scale(0.97); }
+.btn-blue { background: #1e40af; color: #fff; }
+.btn-cyan { background: #0e7490; color: #fff; }
+.btn-gold { background: #d97706; color: #fff; }
+.btn-teal { background: #0d9488; color: #fff; }
+.btn-purple { background: #6d28d9; color: #fff; }
+.btn-pink { background: #be185d; color: #fff; }
+.btn-green-outline { background: transparent; border: 1.5px solid #10b981; color: #10b981; }
+.btn-red-outline { background: transparent; border: 1.5px solid #ef4444; color: #ef4444; }
+.btn-full { grid-column: 1 / -1; }
+.panel { display: none; }
+.panel.active { display: block; animation: fadeIn 0.25s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.card { background: #0f1521; border: 1px solid #1f2a3d; border-radius: 14px;
+  padding: 14px; margin: 0 12px 12px; }
+.card h3 { font-size: 13px; color: #f5a623; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.form-group { margin-bottom: 10px; }
+.form-group label { display: block; font-size: 11px; color: #8492a6;
+  margin-bottom: 5px; font-weight: 600; }
+input, textarea, select { width: 100%; background: #0a0e17; color: #e2e8f0;
+  border: 1px solid #2d3a4f; border-radius: 10px; padding: 10px 12px;
+  font-size: 13px; font-family: inherit; outline: none; transition: 0.2s; }
+input:focus, textarea:focus, select:focus { border-color: #f5a623; }
+textarea { min-height: 70px; resize: vertical;
+  font-family: 'Consolas', monospace; font-size: 12px; }
+.btn { padding: 11px 18px; border: none; border-radius: 22px;
+  font-size: 12.5px; font-weight: 700; cursor: pointer; transition: 0.2s;
+  display: inline-flex; align-items: center; gap: 6px; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-gold-solid { background: #d97706; color: #fff; }
+.btn-cyan-solid { background: #0891b2; color: #fff; }
+.btn-green-solid { background: #059669; color: #fff; }
+.log-box { background: #05080f; border: 1px solid #1f2a3d; border-radius: 10px;
+  padding: 12px; font-family: 'Consolas', monospace; font-size: 11.5px;
+  height: 320px; overflow-y: auto; line-height: 1.6; }
+.log-line { padding: 2px 0; }
+.log-time { color: #4a5870; margin-right: 6px; font-size: 10.5px; }
+.log-msg { color: #cbd5e1; }
+.status-badge { display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.status-idle { background: #374151; color: #9ca3af; }
+.status-running { background: #064e3b; color: #4ade80; animation: pulse 1.4s infinite; }
+.status-done { background: #78350f; color: #fbbf24; }
+.status-error { background: #7f1d1d; color: #f87171; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 8px; }
+th, td { padding: 8px 6px; text-align: left; border-bottom: 1px solid #1f2a3d; }
+th { background: #0a0e17; color: #f5a623; font-weight: 700; font-size: 11px; }
+.page-row:hover { background: #131a26; }
+.page-row input[type="checkbox"] { width: auto; accent-color: #f5a623; }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.badge-count { background: #f5a623; color: #0a0e17; padding: 2px 8px;
+  border-radius: 10px; font-size: 10.5px; font-weight: 800; margin-left: 4px; }
+.toast { position: fixed; bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(100px); background: #10b981;
+  color: #fff; padding: 10px 20px; border-radius: 22px; font-size: 13px;
+  font-weight: 700; transition: 0.3s; z-index: 9999; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.error { background: #ef4444; }
+.result-box { margin-top: 10px; font-size: 11.5px; color: #8492a6; word-break: break-all; }
+@media (min-width: 768px) { body { max-width: 500px; margin: 0 auto; } }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="back">‹</span>
+  <span class="title">NP09V3 - Multi Tool</span>
+  <span class="menu">⋯</span>
+</div>
+
+<div class="app-header">
+  <span class="app-name">🚀 NP09V3</span>
+  <span class="user-chip" id="user-chip">👤 Khách</span>
+  <span class="trial-chip">DÙNG THỬ</span>
+</div>
+<div class="io-status" id="io-status">Đang kết nối server...</div>
+
+<div class="menu-row">
+  <button class="menu-btn" onclick="openTab('home')">🏠 Home</button>
+  <button class="menu-btn" onclick="openTab('gettoken')">🔑 Get Token</button>
+  <button class="menu-btn" onclick="openTab('instagram')">📷 Reg IG</button>
+  <button class="menu-btn" onclick="openTab('regfb')">📘 Reg FB</button>
+  <button class="menu-btn" onclick="openTab('chuyenpage')">📄 Chuyển Page</button>
+  <button class="menu-btn" onclick="openTab('fbapi')">⚡ FB API</button>
+</div>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="label">✔️ Live</div>
+    <div class="value green" id="stat-live">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">⚠️ Lỗi</div>
+    <div class="value red" id="stat-error">0</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">⏱️ Time</div>
+    <div class="value gold" id="stat-time">0s</div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="panel active" id="panel-home">
+  <div class="main-panel">
+    <div class="btn-grid">
+      <button class="big-btn btn-blue" onclick="openTab('chuyenpage')">📄 CHUYỂN PAGE</button>
+      <button class="big-btn btn-purple" onclick="openTab('instagram')">📷 REG INSTAGRAM</button>
+      <button class="big-btn btn-cyan" onclick="openTab('regfb')">📘 REG FACEBOOK</button>
+      <button class="big-btn btn-gold" onclick="openTab('proxy')">🌐 PROXY GEN</button>
+      <button class="big-btn btn-teal btn-full" onclick="openTab('gettoken')">🔑 GET TOKEN / COOKIE</button>
+      <button class="big-btn btn-pink btn-full" onclick="openTab('fbapi')">⚡ FACEBOOK API TOOL</button>
+      <button class="big-btn btn-red-outline btn-full" onclick="stopAll()">⏹ DỪNG TẤT CẢ</button>
+    </div>
+  </div>
+  <div class="card">
+    <h3>📋 Hướng dẫn nhanh</h3>
+    <p style="color:#8492a6; font-size:12px; line-height:1.7;">
+      1. Lấy Token tại: <b>business.facebook.com</b> hoặc <b>Graph API Explorer</b><br>
+      2. Dán Token vào từng chức năng<br>
+      3. Các chức năng FB API cần User Token có quyền tương ứng<br>
+      4. Reg IG/FB cần backend + IP sạch
+    </p>
+  </div>
+</div>
+
+<!-- CHUYỂN PAGE -->
+<div class="panel" id="panel-chuyenpage">
+  <div class="card">
+    <h3>🔍 Bước 1: Quét Page</h3>
+    <div class="form-group">
+      <label>Access Token tài khoản nguồn</label>
+      <textarea id="cp-source-token" placeholder="Dán token..."></textarea>
+    </div>
+    <button class="btn btn-gold-solid" onclick="scanPages(this)">🔍 Quét Page</button>
+    <div id="cp-user-info" style="margin-top:10px;color:#10b981;font-size:12px;"></div>
+    <div id="cp-pages-list"></div>
+  </div>
+  <div class="card">
+    <h3>⚙️ Bước 2: Cấu hình</h3>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Mật khẩu nguồn</label>
+        <input type="password" id="cp-source-pwd" placeholder="Password...">
+      </div>
+      <div class="form-group">
+        <label>Token đích</label>
+        <input type="text" id="cp-target-token" placeholder="Token đích...">
+      </div>
+    </div>
+    <div class="btn-grid" style="margin-top:10px;">
+      <button class="big-btn btn-green-outline" id="cp-start-btn" onclick="startTransfer()" disabled>▶️ Bắt đầu</button>
+      <button class="big-btn btn-red-outline" onclick="stopAll()">⏹ Dừng</button>
+    </div>
+    <div style="margin-top:10px;"><span class="status-badge status-idle" id="cp-status">💤 Chờ</span></div>
+  </div>
+  <div class="card">
+    <h3>📋 Log realtime</h3>
+    <div class="log-box" id="cp-log"></div>
+  </div>
+</div>
+
+<!-- INSTAGRAM -->
+<div class="panel" id="panel-instagram">
+  <div class="card">
+    <h3>📷 Đăng ký Instagram</h3>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Số lượng</label>
+        <input type="number" id="ig-num" value="1" min="1" max="50">
+      </div>
+      <div class="form-group">
+        <label>Password (≥ 6)</label>
+        <input type="text" id="ig-pwd" value="Password123">
+      </div>
+    </div>
+    <div class="btn-grid" style="margin-top:10px;">
+      <button class="big-btn btn-green-outline" onclick="startInstagram()">▶️ Bắt đầu</button>
+      <button class="big-btn btn-red-outline" onclick="stopAll()">⏹ Dừng</button>
+    </div>
+    <div style="margin-top:10px;"><span class="status-badge status-idle" id="ig-status">💤 Chờ</span></div>
+  </div>
+  <div class="card">
+    <h3>📋 Log</h3>
+    <div class="log-box" id="ig-log"></div>
+  </div>
+</div>
+
+<!-- REG FB -->
+<div class="panel" id="panel-regfb">
+  <div class="card">
+    <h3>📘 Đăng ký Facebook iOS</h3>
+    <p style="color:#f87171; font-size:11.5px; margin-bottom:10px;">
+      ⚠️ Cần IP sạch + proxy dân cư để tỷ lệ thành công cao.
+    </p>
+    <div class="grid-2">
+      <div class="form-group">
+        <label>Số lượng</label>
+        <input type="number" id="fb-num" value="1" min="1" max="20">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="text" id="fb-pwd" value="anhem1234">
+      </div>
+    </div>
+    <div class="btn-grid" style="margin-top:10px;">
+      <button class="big-btn btn-green-outline" onclick="startRegFB()">▶️ Bắt đầu</button>
+      <button class="big-btn btn-red-outline" onclick="stopAll()">⏹ Dừng</button>
+    </div>
+    <div style="margin-top:10px;"><span class="status-badge status-idle" id="fb-status">💤 Chờ</span></div>
+  </div>
+  <div class="card">
+    <h3>📋 Log</h3>
+    <div class="log-box" id="fb-log"></div>
+  </div>
+</div>
+
+<!-- FB API -->
+<div class="panel" id="panel-fbapi">
+  <div class="card">
+    <h3>🔑 Token chung</h3>
+    <div class="form-group">
+      <label>User Access Token</label>
+      <textarea id="fbapi-token" placeholder="Dán User Token..."></textarea>
+    </div>
+    <button class="btn btn-cyan-solid" onclick="getFbInfo()">ℹ️ Lấy thông tin tài khoản</button>
+    <div id="fbapi-info" style="margin-top:10px;color:#10b981;font-size:12px;"></div>
+  </div>
+
+  <div class="card">
+    <h3>❤️ Thả cảm xúc bài viết</h3>
+    <div class="form-group">
+      <label>Post ID</label>
+      <input type="text" id="rct-post-id" placeholder="100012345_6789012345">
+    </div>
+    <div class="form-group">
+      <label>Loại</label>
+      <select id="rct-type">
+        <option value="LIKE">LIKE ❤️</option>
+        <option value="LOVE">LOVE 💖</option>
+        <option value="HAHA">HAHA 😂</option>
+        <option value="WOW">WOW 😮</option>
+        <option value="SAD">SAD 😢</option>
+        <option value="ANGRY">ANGRY 😡</option>
+      </select>
+    </div>
+    <button class="btn btn-gold-solid" onclick="doReaction()">❤️ Thả</button>
+    <div id="rct-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>📄 Lấy UID từ link FB</h3>
+    <div class="form-group">
+      <label>Link Facebook</label>
+      <input type="text" id="uid-link" placeholder="https://facebook.com/...">
+    </div>
+    <button class="btn btn-cyan-solid" onclick="getUidFromLink()">🔍 Lấy UID</button>
+    <div id="uid-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>👍 Like Page</h3>
+    <div class="form-group">
+      <label>UID Page</label>
+      <input type="text" id="lp-target" placeholder="123456789">
+    </div>
+    <button class="btn btn-cyan-solid" onclick="likePage()">👍 Like</button>
+    <div id="lp-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>👥 Follow User</h3>
+    <div class="form-group">
+      <label>UID người cần follow</label>
+      <input type="text" id="fl-target" placeholder="123456789">
+    </div>
+    <button class="btn btn-cyan-solid" onclick="followUser()">👥 Follow</button>
+    <div id="fl-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>💬 Comment</h3>
+    <div class="form-group">
+      <label>Post ID</label>
+      <input type="text" id="cm-post-id" placeholder="100012345_6789012345">
+    </div>
+    <div class="form-group">
+      <label>Nội dung</label>
+      <textarea id="cm-text" placeholder="Nội dung..."></textarea>
+    </div>
+    <button class="btn btn-cyan-solid" onclick="doComment()">💬 Comment</button>
+    <div id="cm-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>📤 Share</h3>
+    <div class="form-group">
+      <label>Post ID</label>
+      <input type="text" id="sh-post-id" placeholder="100012345_6789012345">
+    </div>
+    <button class="btn btn-cyan-solid" onclick="doShare()">📤 Share</button>
+    <div id="sh-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>🖼️ Up Avatar / Cover</h3>
+    <div class="form-group">
+      <label>Link ảnh Avatar</label>
+      <input type="text" id="av-url" placeholder="https://...jpg">
+    </div>
+    <button class="btn btn-cyan-solid" onclick="upAvatar()">🖼️ Up Avatar</button>
+    <div class="form-group" style="margin-top:10px;">
+      <label>Link ảnh Cover</label>
+      <input type="text" id="cv-url" placeholder="https://...jpg">
+    </div>
+    <button class="btn btn-cyan-solid" onclick="upCover()">🖼️ Up Cover</button>
+    <div id="img-result" class="result-box"></div>
+  </div>
+
+  <div class="card">
+    <h3>🆕 Tạo Page tự động</h3>
+    <div class="form-group">
+      <label>Số lượng</label>
+      <input type="number" id="rp-count" value="1" min="1" max="20">
+    </div>
+    <div class="btn-grid">
+      <button class="big-btn btn-green-outline" onclick="regPage()">▶️ Bắt đầu</button>
+      <button class="big-btn btn-red-outline" onclick="stopAll()">⏹ Dừng</button>
+    </div>
+    <div style="margin-top:10px;"><span class="status-badge status-idle" id="rp-status">💤 Chờ</span></div>
+    <div class="log-box" id="rp-log" style="margin-top:10px;height:200px;"></div>
+  </div>
+</div>
+
+<!-- PROXY -->
+<div class="panel" id="panel-proxy">
+  <div class="card">
+    <h3>🌐 Proxy Generator</h3>
+    <div class="form-group">
+      <label>Số lượng</label>
+      <input type="number" id="px-limit" value="500" min="1" max="5000">
+    </div>
+    <div class="btn-grid">
+      <button class="big-btn btn-cyan" onclick="fetchProxies()">🔍 Lấy Proxy</button>
+      <button class="big-btn btn-gold" onclick="copyProxies()">📋 Copy all</button>
+    </div>
+    <div id="px-status" style="margin-top:10px;font-size:12px;color:#8492a6;"></div>
+    <div id="px-table" style="max-height: 400px; overflow-y: auto;"></div>
+  </div>
+</div>
+
+<!-- TOKEN PARSER -->
+<div class="panel" id="panel-gettoken">
+  <div class="card">
+    <h3>🔑 Token & Cookie Parser</h3>
+    <div class="form-group">
+      <label>Dữ liệu thô</label>
+      <textarea id="tk-raw" style="min-height:180px;" placeholder="Dán vào đây..."></textarea>
+    </div>
+    <button class="btn btn-gold-solid" onclick="parseToken()">🔍 Phân tích</button>
+    <div id="tk-result" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let cpPages = [];
+let pxList = [];
+let startTime = 0;
+let timerInterval = null;
+let sessions = { cp: null, ig: null, fb: null, rp: null };
+
+function toast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+function openTab(tab) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('panel-' + tab);
+  if (el) el.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startTimer() {
+  startTime = Date.now();
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    const s = Math.floor((Date.now() - startTime) / 1000);
+    document.getElementById('stat-time').textContent = s + 's';
+  }, 500);
+}
+
+function stopAll() {
+  Object.keys(sessions).forEach(k => {
+    if (sessions[k]) fetch('/api/stop/' + sessions[k], {method: 'POST'});
+  });
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  ['cp-status', 'ig-status', 'fb-status', 'rp-status'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.className = 'status-badge status-idle'; el.textContent = '⏹ Dừng'; }
+  });
+}
+
+function connectLogs(sessionId, logEl, statusEl, key) {
+  const es = new EventSource('/api/logs/' + sessionId);
+  es.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    if (data.status === 'closed') { es.close(); return; }
+    if (data.status) {
+      const map = { 'running': 'status-running', 'done': 'status-done',
+                    'error': 'status-error', 'stopped': 'status-idle' };
+      statusEl.className = 'status-badge ' + (map[data.status] || 'status-idle');
+      statusEl.textContent = data.status === 'running' ? '⏳ Đang chạy' :
+        data.status === 'done' ? '✅ Xong' :
+        data.status === 'error' ? '❌ Lỗi' :
+        data.status === 'stopped' ? '⏹ Dừng' : '💤 Chờ';
+    }
+    if (data.msg) {
+      const line = document.createElement('div');
+      line.className = 'log-line';
+      line.innerHTML = `<span class="log-time">[${data.time}]</span><span class="log-msg">${data.msg}</span>`;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+      if (data.msg.includes('✅') || data.msg.includes('THÀNH CÔNG') || data.msg.includes('LIVE')) {
+        const el = document.getElementById('stat-live');
+        el.textContent = parseInt(el.textContent || 0) + 1;
+      }
+      if (data.msg.includes('❌') || data.msg.includes('DIE') || data.msg.includes('Fail')) {
+        const el = document.getElementById('stat-error');
+        el.textContent = parseInt(el.textContent || 0) + 1;
+      }
+    }
+  };
+  es.onerror = () => es.close();
+}
+
+/* CHUYỂN PAGE */
+async function scanPages(btn) {
+  const token = document.getElementById('cp-source-token').value.trim();
+  if (!token) return toast('Nhập token nguồn!', true);
+  btn.disabled = true; const old = btn.textContent;
+  btn.textContent = '⏳ Đang quét...';
+  try {
+    const r = await fetch('/api/chuyenpage/scan', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({token})
+    });
+    const d = await r.json();
+    if (!d.success) { toast(d.error, true); return; }
+    document.getElementById('user-chip').textContent = '👤 ' + d.name;
+    document.getElementById('cp-user-info').textContent = `✅ ${d.name} (UID: ${d.uid})`;
+    cpPages = d.pages;
+    renderPages();
+    toast(`✅ ${cpPages.length} page`);
+  } catch (e) { toast('Lỗi: ' + e.message, true); }
+  finally { btn.disabled = false; btn.textContent = old; }
+}
+
+function renderPages() {
+  const el = document.getElementById('cp-pages-list');
+  if (cpPages.length === 0) {
+    el.innerHTML = '<p style="color:#8492a6;margin-top:10px;">Không có page</p>';
+    return;
+  }
+  let html = `<p style="margin-top:12px;font-size:12px;color:#8492a6;">
+    Tìm thấy <span class="badge-count">${cpPages.length}</span> page:
+  </p><table><thead><tr>
+    <th><input type="checkbox" id="cp-check-all" onchange="toggleAll(this)"></th>
+    <th>#</th><th>UID</th><th>Tên</th>
+  </tr></thead><tbody>`;
+  cpPages.forEach((p, i) => {
+    html += `<tr class="page-row">
+      <td><input type="checkbox" class="cp-page-cb" data-uid="${p.uid}"></td>
+      <td>${i+1}</td><td>${p.uid}</td><td>${p.name}</td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+  document.getElementById('cp-start-btn').disabled = false;
+}
+
+function toggleAll(cb) {
+  document.querySelectorAll('.cp-page-cb').forEach(c => c.checked = cb.checked);
+}
+
+async function startTransfer() {
+  const selected = Array.from(document.querySelectorAll('.cp-page-cb:checked')).map(c => c.dataset.uid);
+  if (selected.length === 0) return toast('Chọn page!', true);
+  const source_token = document.getElementById('cp-source-token').value.trim();
+  const source_password = document.getElementById('cp-source-pwd').value.trim();
+  const target_token = document.getElementById('cp-target-token').value.trim();
+  if (!source_password || !target_token) return toast('Nhập đủ thông tin!', true);
+  document.getElementById('cp-log').innerHTML = '';
+  document.getElementById('cp-start-btn').disabled = true;
+  startTimer();
+  const r = await fetch('/api/chuyenpage/transfer', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({source_token, source_password, target_token, page_uids: selected})
+  });
+  const d = await r.json();
+  if (d.success) {
+    sessions.cp = d.session_id;
+    connectLogs(d.session_id, document.getElementById('cp-log'),
+                document.getElementById('cp-status'), 'cp');
+  }
+}
+
+/* INSTAGRAM */
+async function startInstagram() {
+  const num = parseInt(document.getElementById('ig-num').value) || 1;
+  const pwd = document.getElementById('ig-pwd').value.trim();
+  if (pwd.length < 6) return toast('Password ≥ 6 ký tự!', true);
+  document.getElementById('ig-log').innerHTML = '';
+  startTimer();
+  const r = await fetch('/api/instagram/start', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({num_accounts: num, password: pwd})
+  });
+  const d = await r.json();
+  if (d.success) {
+    sessions.ig = d.session_id;
+    connectLogs(d.session_id, document.getElementById('ig-log'),
+                document.getElementById('ig-status'), 'ig');
+  }
+}
+
+/* REG FB */
+async function startRegFB() {
+  const num = parseInt(document.getElementById('fb-num').value) || 1;
+  const pwd = document.getElementById('fb-pwd').value.trim();
+  document.getElementById('fb-log').innerHTML = '';
+  startTimer();
+  const r = await fetch('/api/regfb/start', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({num_accounts: num, password: pwd})
+  });
+  const d = await r.json();
+  if (d.success) {
+    sessions.fb = d.session_id;
+    connectLogs(d.session_id, document.getElementById('fb-log'),
+                document.getElementById('fb-status'), 'fb');
+  }
+}
+
+/* FB API */
+function getToken() {
+  return document.getElementById('fbapi-token').value.trim();
+}
+
+async function callFbApi(endpoint, extra = {}) {
+  const token = getToken();
+  if (!token) { toast('Nhập token chung!', true); return null; }
+  const r = await fetch('/api/fb/' + endpoint, {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({token, ...extra})
+  });
+  return await r.json();
+}
+
+async function getFbInfo() {
+  const d = await callFbApi('getinfo');
+  if (!d) return;
+  if (d.success) {
+    document.getElementById('user-chip').textContent = '👤 ' + d.info.name;
+    document.getElementById('fbapi-info').innerHTML =
+      `✅ <b>${d.info.name}</b> (UID: ${d.info.id})` +
+      (d.info.avatar_url ? `<br><img src="${d.info.avatar_url}" style="width:60px;border-radius:50%;margin-top:6px;">` : '');
+  } else {
+    document.getElementById('fbapi-info').textContent = '❌ ' + d.error;
+  }
+}
+
+async function doReaction() {
+  const post_id = document.getElementById('rct-post-id').value.trim();
+  const reaction = document.getElementById('rct-type').value;
+  if (!post_id) return toast('Nhập Post ID!', true);
+  const d = await callFbApi('reaction', {post_id, reaction});
+  if (!d) return;
+  document.getElementById('rct-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Thành công</span>` : `<span style="color:#ef4444;">❌ ${d.error || 'Thất bại'}</span>`;
+}
+
+async function getUidFromLink() {
+  const link = document.getElementById('uid-link').value.trim();
+  if (!link) return toast('Nhập link!', true);
+  const r = await fetch('/api/fb/getid', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({link})
+  });
+  const d = await r.json();
+  document.getElementById('uid-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ UID: ${d.uid}</span>` : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function likePage() {
+  const target_uid = document.getElementById('lp-target').value.trim();
+  if (!target_uid) return toast('Nhập UID page!', true);
+  const d = await callFbApi('likepage', {target_uid});
+  if (!d) return;
+  document.getElementById('lp-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Thành công</span>` : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function followUser() {
+  const target_uid = document.getElementById('fl-target').value.trim();
+  if (!target_uid) return toast('Nhập UID!', true);
+  const d = await callFbApi('follow', {target_uid});
+  if (!d) return;
+  document.getElementById('fl-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Đã follow</span>` : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function doComment() {
+  const post_id = document.getElementById('cm-post-id').value.trim();
+  const text = document.getElementById('cm-text').value.trim();
+  if (!post_id || !text) return toast('Nhập đủ thông tin!', true);
+  const d = await callFbApi('comment', {post_id, text});
+  if (!d) return;
+  document.getElementById('cm-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Đã comment</span>` : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function doShare() {
+  const post_id = document.getElementById('sh-post-id').value.trim();
+  if (!post_id) return toast('Nhập Post ID!', true);
+  const d = await callFbApi('share', {post_id});
+  if (!d) return;
+  document.getElementById('sh-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Share OK - Story ID: ${d.story_id || ''}</span>`
+    : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function upAvatar() {
+  const image_url = document.getElementById('av-url').value.trim();
+  if (!image_url) return toast('Nhập link ảnh!', true);
+  const d = await callFbApi('upavatar', {image_url});
+  if (!d) return;
+  document.getElementById('img-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Up avatar OK</span>` : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function upCover() {
+  const image_url = document.getElementById('cv-url').value.trim();
+  if (!image_url) return toast('Nhập link ảnh!', true);
+  const d = await callFbApi('upcover', {image_url});
+  if (!d) return;
+  document.getElementById('img-result').innerHTML = d.success
+    ? `<span style="color:#10b981;">✅ Up cover OK</span>` : `<span style="color:#ef4444;">❌ ${d.error}</span>`;
+}
+
+async function regPage() {
+  const count = parseInt(document.getElementById('rp-count').value) || 1;
+  const token = getToken();
+  if (!token) return toast('Nhập token chung!', true);
+  document.getElementById('rp-log').innerHTML = '';
+  startTimer();
+  const r = await fetch('/api/fb/regpage', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({token, count})
+  });
+  const d = await r.json();
+  if (d.success) {
+    sessions.rp = d.session_id;
+    connectLogs(d.session_id, document.getElementById('rp-log'),
+                document.getElementById('rp-status'), 'rp');
+  }
+}
+
+/* PROXY */
+async function fetchProxies() {
+  const limit = parseInt(document.getElementById('px-limit').value) || 500;
+  document.getElementById('px-status').textContent = '⏳ Đang lấy...';
+  const r = await fetch('/api/proxy/fetch', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({limit})
+  });
+  const d = await r.json();
+  if (d.success) {
+    pxList = d.proxies.map(p => p.url);
+    document.getElementById('px-status').innerHTML = `✅ <b>${d.total}</b> proxy`;
+    let html = `<table><thead><tr>
+      <th>#</th><th>IP</th><th>Port</th><th>Type</th><th>Status</th>
+    </tr></thead><tbody>`;
+    d.proxies.forEach((p, i) => {
+      html += `<tr class="page-row">
+        <td>${i+1}</td><td>${p.ip}</td><td>${p.port}</td><td>${p.type}</td>
+        <td><span style="color:#10b981;font-weight:800;">LIVE</span></td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('px-table').innerHTML = html;
+  }
+}
+
+function copyProxies() {
+  if (pxList.length === 0) return toast('Chưa có proxy!', true);
+  navigator.clipboard.writeText(pxList.join('\n')).then(() => toast(`✅ Copy ${pxList.length} proxy!`));
+}
+
+/* TOKEN PARSER */
+async function parseToken() {
+  const raw = document.getElementById('tk-raw').value;
+  if (!raw.trim()) return toast('Dán dữ liệu!', true);
+  const r = await fetch('/api/gettoken/parse', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({raw})
+  });
+  const d = await r.json();
+  const res = d.result;
+  let html = '';
+  if (res.cookies) {
+    html += `<div class="form-group"><label>🍪 Cookies</label>
+      <textarea readonly style="min-height:70px;">${res.cookies}</textarea></div>`;
+  }
+  res.tokens.forEach((t, i) => {
+    html += `<div class="form-group"><label>🔑 Token ${i+1}</label>
+      <textarea readonly style="min-height:55px;">${t}</textarea></div>`;
+  });
+  res.user_agents.forEach((u, i) => {
+    html += `<div class="form-group"><label>🖥️ UA ${i+1}</label>
+      <textarea readonly style="min-height:45px;">${u}</textarea></div>`;
+  });
+  if (!html) html = '<p style="color:#ef4444;">❌ Không tìm thấy!</p>';
+  document.getElementById('tk-result').innerHTML = html;
+  toast(`✅ ${res.tokens.length} token`);
+}
+
+fetch('/health').then(r => r.json()).then(d => {
+  document.getElementById('io-status').textContent = '✅ Server online - ' + new Date(d.time).toLocaleTimeString('vi-VN');
+}).catch(() => {
+  document.getElementById('io-status').textContent = '❌ Server offline';
+});
+</script>
+</body>
+</html>
